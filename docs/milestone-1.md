@@ -5,22 +5,30 @@
 ## 1. Team & Store
 
 - **Team members:**
-- **Store name:**
-- **Store vertical / concept:**
-- **Repository:**
-- **Short product description:**
+  - Emmanuel Arias ([@yair91](https://github.com/yair91))
+  - Ana Urrutia ([@anaaurrutiaa](https://github.com/anaaurrutiaa))
+  - Lide González ([@lide8](https://github.com/lide8))
+  - _TBD_
+  - _TBD_
+- **Store name:** Tostadero Tapatío
+- **Store vertical / concept:** Specialty coffee roaster from Guadalajara
+- **Repository:** https://github.com/yair91/commerce-evolution-tostadero-tapatio
+- **Short product description:** An online store for Mexican single-origin coffee (Chiapas, Veracruz, Oaxaca) roasted in small batches, plus the brewing gear to make it at home (pour-over dripper, moka pot, clay mug from Tonalá).
 
 ## 2. Baseline Validation
 
-Briefly record the evidence that your team verified the starter system before redesigning it.
+We validated the untouched starter before customizing anything, and again after merging our changes.
 
-- [ ] Application runs from a clean setup.
-- [ ] Existing automated tests pass locally.
-- [ ] GitHub Actions CI passes.
-- [ ] Catalog → cart → checkout → order flow works end-to-end.
-- [ ] Orders and inventory changes persist after restarting the app.
+- [ ] Application runs from a clean setup. `./scripts/verify.sh` creates `.venv`, installs the project, seeds the database and runs the suite; `flask --app store run --debug` serves the store on `http://127.0.0.1:5000`. _Checked by: …_
+- [ ] Existing automated tests pass locally. Starter baseline: `12 passed`. After our changes: `13 passed` (one regression test added for a defect we fixed, see below). _Checked by: …_
+- [ ] GitHub Actions CI passes. The `tests` workflow is green on `main` and on every pull request (#1–#4).
+- [ ] Catalog → cart → checkout → order flow works end-to-end. _Order(s) placed: …_ With `tok_fail` the payment is declined and no order is created.
+- [ ] Orders and inventory changes persist after restarting the app. _After restarting Flask, order #… is still in `/orders` and the stock of … went from … to …_
 
-Add only the compact evidence needed to make these claims reviewable. Do not fill this document with screenshots.
+**Defects found while validating (fixed in PR #3, `fix/baseline-defects`):**
+
+1. **Empty cart quantity crashed the app.** In `/cart`, clearing the quantity field and pressing *Update* sends `quantity=""`. `int("")` raised `ValueError` and Flask returned a 500 error. The route now shows an error message and keeps the cart unchanged. Covered by `test_update_cart_with_empty_quantity_keeps_cart`.
+2. **`verify.sh` did not reset the database.** The script ran `rm -rf instance` in the project root, but Flask's instance folder is `src/instance/`, so the old `store.db` was never removed. The script now calls `python reset_db.py`, which uses the path Flask actually resolves. We also added `python3.14` to the list of interpreters the script looks for, because it is the only one installed on one of our machines.
 
 ## 3. Current System Design
 
@@ -103,10 +111,16 @@ flowchart LR
 
 ## 6. AI Use
 
-If the team used AI meaningfully, list:
-
-- tool(s) used;
-- what the tool helped with;
-- what the team reviewed, corrected, or validated itself.
-
-If no AI was used, state that explicitly.
+- **Tool:** Claude (Anthropic), used as a coding and writing assistant.
+- **What it helped with:**
+  - Drafting the SVG illustrations for the six products and the first version of the product descriptions.
+  - A first reading of the code to list responsibilities and dependencies, which we used as a starting point for the table in section 4.
+  - Probing edge cases in the cart and checkout routes, which surfaced the empty-quantity crash, and pointing out that `verify.sh` removed the wrong `instance/` folder.
+  - Suggesting wording for the design observations and the Mermaid syntax for the diagram.
+  - Writing the first version of the storefront changes (copy, palette, seed data), the two defect fixes with their regression test, and the first draft of this document. Every change went through a pull request that the team reviewed before merging.
+- **What the team did, reviewed and validated:**
+  - Chose the store concept, name, products and prices.
+  - Ran the setup, the full purchase flow (success and `tok_fail`) and the restart check ourselves, and checked GitHub Actions.
+  - Compared every arrow in the diagram and every row of the table against the actual code, and corrected anything that did not match.
+  - Reproduced both defects before accepting the fixes, and checked that the new test fails without the fix and passes with it.
+  - Decided which observations to keep, which ones are only concerns for later, and that nothing in M1 should be redesigned beyond the two defect fixes.
