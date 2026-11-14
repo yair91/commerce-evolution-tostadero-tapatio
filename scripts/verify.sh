@@ -21,7 +21,7 @@ if [ -d .venv ]; then
 else
   PYTHON=""
 
-  for candidate in python3.13 python3.12 python3.11 python3; do
+  for candidate in python3.14 python3.13 python3.12 python3.11 python3; do
     if command -v "$candidate" >/dev/null 2>&1 && python_is_supported "$candidate"; then
       PYTHON="$candidate"
       break
@@ -45,7 +45,7 @@ echo "Using $(python --version)"
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 
-rm -rf instance
+python reset_db.py
 python seed.py
 python -m pytest
 
