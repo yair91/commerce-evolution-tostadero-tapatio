@@ -91,15 +91,15 @@ flowchart LR
 
 ## 5. Design Observations
 
-Record 3–5 evidence-based observations about the baseline. Include all of the following somewhere in the set:
+**O1 — Strength: persistence is well localized.** All database setup lives in `db.py` and all mapping lives in `models.py`. Routes never open connections themselves; they ask for `get_session()`, and the session is closed automatically at the end of the request. Changing the database file or engine settings only touches `create_app` and `db.py`. In addition, `OrderItem` stores a copy of the SKU, name and unit price, so an old order keeps showing what the customer actually paid even if the product is later renamed or its price changes.
 
-- at least one current design strength;
-- at least one original decision that is reasonable for the current problem;
-- at least one coupling or design-pressure concern;
-- at least one potential technical-debt concern;
-- a clear distinction between **what you observe now** and redesign you might consider only if future requirements justify it.
+**O2 — Reasonable original decision: simple payment and shipping.** The payment provider is one small class with one method (`charge`) and one exception (`PaymentDeclined`), and shipping is a single constant (`STANDARD_SHIPPING_CENTS`). For the current requirements (one fake provider, one shipping option) this is the right size. An interface, a strategy or a factory here would add code with no current benefit. The session-based cart is also reasonable: there are no user accounts, so there is nothing else to attach the cart to.
 
-Do **not** add patterns, layers, interfaces, repositories, factories, or architectural abstractions just in case they might become useful later.
+**O3 — Coupling / design pressure: the purchase sequence lives inside one HTTP handler.** `checkout.place_order` is about 65 lines that mix request parsing, validation, stock rules, price calculation, the payment call, order creation, the inventory update, the commit, the session reset and flash messages. It also creates `FakePaymentProcessor()` directly inside the function. This is where the most important coordination knowledge in the system is, and it can only be exercised through an HTTP request (all checkout tests use the Flask test client). *Observed now:* it works and is covered by tests. *Only if future requirements justify it* (for example a second payment provider, several shipping methods or a purchase that does not come from the web form) would we consider moving that sequence out of the route.
+
+**O4 — Technical debt: the order total is calculated in three places.** `cart.view_cart`, `checkout.checkout_form` and `checkout.place_order` each compute `sum(line.line_total_cents ...)`, and the last two add `STANDARD_SHIPPING_CENTS` separately. Today they agree. If pricing changes (discounts, taxes, shipping by weight), the change has to be repeated in every place, and the price shown to the customer can drift from the price charged.
+
+**O5 — Technical debt: payment happens before the order is saved, and stock is not reserved.** The card is charged first and the order is committed afterwards. If the commit fails, the customer has been charged and there is no order and no refund path. The stock check is also a plain read followed by a later subtraction, with no locking, so two simultaneous checkouts for the last unit could both succeed. With one user on SQLite this does not happen in practice, so we record it as an observation and do not change it in M1.
 
 ## 6. AI Use
 
