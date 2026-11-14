@@ -117,7 +117,7 @@ flowchart LR
   - A first reading of the code to list responsibilities and dependencies, which we used as a starting point for the table in section 4.
   - Probing edge cases in the cart and checkout routes, which surfaced the empty-quantity crash, and pointing out that `verify.sh` removed the wrong `instance/` folder.
   - Suggesting wording for the design observations and the Mermaid syntax for the diagram.
-  - Writing the first version of the storefront changes (copy, palette, seed data), the two defect fixes with their regression test, and the first draft of this document. Every change went through a pull request that the team reviewed before merging.
+  - Writing the first version of the storefront changes (copy, palette, seed data), the two defect fixes with their regression test, and the first draft of this document. Every change was submitted as a pull request so the team could review it.
 - **What the team did, reviewed and validated:**
   - Chose the store concept, name, products and prices.
   - Ran the setup, the full purchase flow (success and `tok_fail`) and the restart check ourselves, and checked GitHub Actions.
