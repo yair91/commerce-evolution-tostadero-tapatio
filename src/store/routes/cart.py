@@ -59,7 +59,11 @@ def add(product_id: int):
 @bp.post("/update/<int:product_id>")
 def update(product_id: int):
     cart = _raw_cart()
-    quantity = max(0, int(request.form.get("quantity", "1")))
+    try:
+        quantity = max(0, int(request.form.get("quantity", "1")))
+    except ValueError:
+        flash("Quantity must be a whole number.", "error")
+        return redirect(url_for("cart.view_cart"))
     key = str(product_id)
     if quantity == 0:
         cart.pop(key, None)
