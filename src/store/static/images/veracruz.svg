@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+<rect width="800" height="600" rx="40" fill="#e9eddc"/>
+<circle cx="400" cy="280" r="190" fill="#4f5f2b" opacity=".10"/>
+<path d="M300 150 h200 l24 40 v230 a20 20 0 0 1 -20 20 h-208 a20 20 0 0 1 -20 -20 v-230 z" fill="#4f5f2b"/>
+<path d="M300 150 h200 l-14 22 h-172 z" fill="#000" opacity=".18"/>
+<rect x="318" y="220" width="164" height="150" rx="14" fill="#fffaf2"/>
+<ellipse cx="400" cy="275" rx="24" ry="34" fill="#4f5f2b" transform="rotate(-25 400 275)"/>
+<path d="M392 248 q16 26 0 54" stroke="#fffaf2" stroke-width="5" fill="none" transform="rotate(-25 400 275)"/>
+<text x="400" y="338" text-anchor="middle" font-family="Georgia, serif" font-size="22" font-weight="700" fill="#2b1d16">VERACRUZ</text>
+<text x="400" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" letter-spacing="2" fill="#7a675c">340 G · WHOLE BEAN</text>
+<text x="400" y="520" text-anchor="middle" font-family="Georgia, serif" font-size="36" font-weight="700" fill="#4f5f2b">Veracruz Coatepec</text>
+</svg>
