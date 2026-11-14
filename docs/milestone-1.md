@@ -19,16 +19,21 @@
 
 We validated the untouched starter before customizing anything, and again after merging our changes.
 
-- [ ] Application runs from a clean setup. `./scripts/verify.sh` creates `.venv`, installs the project, seeds the database and runs the suite; `flask --app store run --debug` serves the store on `http://127.0.0.1:5000`. _Checked by: …_
-- [ ] Existing automated tests pass locally. Starter baseline: `12 passed`. After our changes: `13 passed` (one regression test added for a defect we fixed, see below). _Checked by: …_
-- [ ] GitHub Actions CI passes. The `tests` workflow is green on `main` and on every pull request (#1–#4).
-- [ ] Catalog → cart → checkout → order flow works end-to-end. _Order(s) placed: …_ With `tok_fail` the payment is declined and no order is created.
-- [ ] Orders and inventory changes persist after restarting the app. _After restarting Flask, order #… is still in `/orders` and the stock of … went from … to …_
+- [x] **Application runs from a clean setup.** `./scripts/verify.sh` creates `.venv`, installs the project, seeds the database and runs the suite. `flask --app store run --debug` serves the store locally.
+- [x] **Existing automated tests pass locally.** Starter baseline: `12 passed`. After our changes: `13 passed` (one regression test added for a defect we fixed, see below).
+- [x] **GitHub Actions CI passes.** The `tests` workflow is green on `main` and on every pull request (#1–#5).
+- [x] **Catalog → cart → checkout → order flow works end-to-end.** Cart: 2 × Chiapas Altura + 1 × V60 Ceramic Dripper, subtotal $1,027.00. Checkout with `tok_fail` showed *Payment was declined* and created no order. Checkout with `tok_success` created **Order #1**: $1,027.00 + $99.00 shipping = **$1,126.00**, status `confirmed`, payment reference `pay_…`.
+- [x] **Orders and inventory changes persist after restarting the app.** We stopped and restarted Flask. Order #1 was still listed in `/orders`, and the catalog still showed the reduced stock: Chiapas Altura 25 → 23, V60 Ceramic Dripper 10 → 9. In `src/instance/store.db`, the `orders` row stores subtotal 102700, shipping 9900 and total 112600 (cents), and `order_items` keeps both lines with the unit price at purchase time.
 
-**Defects found while validating (fixed in PR #3, `fix/baseline-defects`):**
+**Defects found while validating:**
 
-1. **Empty cart quantity crashed the app.** In `/cart`, clearing the quantity field and pressing *Update* sends `quantity=""`. `int("")` raised `ValueError` and Flask returned a 500 error. The route now shows an error message and keeps the cart unchanged. Covered by `test_update_cart_with_empty_quantity_keeps_cart`.
-2. **`verify.sh` did not reset the database.** The script ran `rm -rf instance` in the project root, but Flask's instance folder is `src/instance/`, so the old `store.db` was never removed. The script now calls `python reset_db.py`, which uses the path Flask actually resolves. We also added `python3.14` to the list of interpreters the script looks for, because it is the only one installed on one of our machines.
+1. **Empty cart quantity crashed the app.** In `/cart`, clearing the quantity field and pressing *Update* sends `quantity=""`. `int("")` raised `ValueError` and Flask returned a 500 error. The route now shows an error message and keeps the cart unchanged. Covered by `test_update_cart_with_empty_quantity_keeps_cart` (PR #3).
+2. **`verify.sh` did not reset the database.** The script ran `rm -rf instance` in the project root, but Flask's instance folder is `src/instance/`, so the old `store.db` was never removed. The script now calls `python reset_db.py`, which uses the path Flask actually resolves. We also added `python3.14` to the list of interpreters the script looks for, because it is the only one installed on one of our machines. (PR #3)
+3. **Coffee bag label overflowed.** In our own catalog illustrations, the "340 G · WHOLE BEAN" line did not fit inside the label of the three coffee bags. Fixed by reducing the font size (PR #5).
+
+The empty-quantity fix was also checked in the browser: clearing the field and pressing *Update* now shows *Quantity must be a whole number.* and the cart stays the same.
+
+**Minor things we noticed but did not change in M1:** after a declined payment the checkout form comes back empty, so the customer has to type name, email and address again; and order times in `/orders` are shown in UTC without saying so.
 
 ## 3. Current System Design
 
@@ -116,11 +121,12 @@ flowchart LR
   - Drafting the SVG illustrations for the six products and the first version of the product descriptions.
   - A first reading of the code to list responsibilities and dependencies, which we used as a starting point for the table in section 4.
   - Probing edge cases in the cart and checkout routes, which surfaced the empty-quantity crash, and pointing out that `verify.sh` removed the wrong `instance/` folder.
+  - Running a first end-to-end check of the purchase flow and the restart test in a local browser.
   - Suggesting wording for the design observations and the Mermaid syntax for the diagram.
   - Writing the first version of the storefront changes (copy, palette, seed data), the two defect fixes with their regression test, and the first draft of this document. Every change was submitted as a pull request so the team could review it.
 - **What the team did, reviewed and validated:**
   - Chose the store concept, name, products and prices.
-  - Ran the setup, the full purchase flow (success and `tok_fail`) and the restart check ourselves, and checked GitHub Actions.
+  - Repeated the setup, the full purchase flow (success and `tok_fail`) and the restart check on our own machines, and checked GitHub Actions.
   - Compared every arrow in the diagram and every row of the table against the actual code, and corrected anything that did not match.
   - Reproduced both defects before accepting the fixes, and checked that the new test fails without the fix and passes with it.
   - Decided which observations to keep, which ones are only concerns for later, and that nothing in M1 should be redesigned beyond the two defect fixes.
